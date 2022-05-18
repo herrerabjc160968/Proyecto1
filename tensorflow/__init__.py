@@ -29,5 +29,5 @@ app.flags = flags
 # resolution to succeed.
 # pylint: disable=undefined-variable
 del python
-del core
+del core python
 # pylint: enable=undefined-variable
