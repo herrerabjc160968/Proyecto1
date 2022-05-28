@@ -667,9 +667,9 @@ class DefFunctionTest(xla_test.XLATestCase):
 
   @test_util.disable_mlir_bridge('TODO(b/199737685): MLIR bridge does not'
                                  'support tf.unique via jit_compile')
-  def testUniqueDifferentSizes(self):
-    if not 'gpu' in self.device.lower():
-      self.skipTest('Currently works only on GPU')
+  def testUniqueErrMsg(self):
+    if 'tpu' in self.device.lower():
+      self.skipTest('We do not check shapes on TPU')
 
     with ops.device('device:{}:0'.format(self.device)):
 
@@ -677,12 +677,10 @@ class DefFunctionTest(xla_test.XLATestCase):
       def f(x, y):
         return array_ops.unique(x).y + array_ops.unique(y).y
 
-      f(constant_op.constant([3.1, 3.2]), constant_op.constant([3.3, 3.2]))
-
-      with self.assertRaisesRegex(errors.InternalError, 'different size'):
-        f(
-            constant_op.constant([3.1, 3.2]),
-            constant_op.constant([3.1, 3.2, 3.3]))
+      with self.assertRaisesRegex(errors.InvalidArgumentError,
+                                  'Fail to proof the equality'):
+        f(constant_op.constant([3.1, 3.2]),
+          constant_op.constant([3.3, 3.2]))
 
   @test_util.disable_mlir_bridge('TODO(b/199737685): MLIR bridge does not'
                                  'support tf.unique via jit_compile')
