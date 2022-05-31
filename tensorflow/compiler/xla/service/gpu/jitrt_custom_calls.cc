@@ -21,7 +21,6 @@
 
 #include "llvm/ExecutionEngine/Orc/Mangling.h"
 #include "mlir/Support/LogicalResult.h"  // from @llvm-project
-#include "tensorflow/compiler/xla/service/gpu/cholesky_thunk.h"
 #include "tensorflow/compiler/xla/service/gpu/gpu_asm_opts_util.h"
 #include "tensorflow/compiler/xla/service/gpu/infeed_manager.h"
 #include "tensorflow/compiler/xla/service/gpu/matmul_utils.h"
@@ -35,6 +34,10 @@
 #include "tfrt/jitrt/custom_call.h"  // from @tf_runtime
 #include "tfrt/jitrt/jitrt.h"  // from @tf_runtime
 #include "tfrt/dtype/dtype.h"  // from @tf_runtime
+
+#if GOOGLE_CUDA || TENSORFLOW_USE_ROCM
+#include "third_party/tensorflow/compiler/xla/service/gpu/cholesky_thunk.h"
+#endif  // GOOGLE_CUDA || TENSORFLOW_USE_ROCM
 
 TFRT_DEFINE_EXPLICIT_DENSE_TYPE_ID(tfrt::jitrt::CustomCall,
                                    xla::gpu::JitRtKernelsCache);
@@ -740,6 +743,7 @@ LogicalResult Cholesky::operator()(
     const DebugOptions* debug_options, jitrt::MemrefView operand,
     jitrt::MemrefView a, jitrt::MemrefView workspace, jitrt::MemrefView info,
     int64_t batch_size, int64_t n, int64_t uplo) const {
+#if GOOGLE_CUDA || TENSORFLOW_USE_ROCM
   se::DeviceMemoryBase operand_buffer = GetDeviceAddress(operand);
   se::DeviceMemoryBase a_buffer = GetDeviceAddress(a);
   se::DeviceMemoryBase workspace_buffer = GetDeviceAddress(workspace);
@@ -760,6 +764,9 @@ LogicalResult Cholesky::operator()(
   if (!executed.ok()) return failure();
 
   return success();
+#else  // GOOGLE_CUDA || TENSORFLOW_USE_ROCM
+  return failure();
+#endif
 }
 
 static bool Cholesky(runtime::KernelContext* ctx, void** args, void** attrs) {

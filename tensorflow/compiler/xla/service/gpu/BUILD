@@ -649,7 +649,6 @@ cc_library(
     tags = ["manual"],
     visibility = ["//visibility:private"],
     deps = [
-        ":cholesky_thunk",
         ":gpu_asm_opts_util",
         ":io_feed_manager",
         ":matmul_utils",
@@ -663,7 +662,9 @@ cc_library(
         "@tf_runtime//:support",
         "@tf_runtime//backends/jitrt",
         "@tf_runtime//backends/jitrt:custom_call",
-    ],
+    ] + if_gpu_is_configured([
+        ":cholesky_thunk",
+    ]),
 )
 
 cc_library(
