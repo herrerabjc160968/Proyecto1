@@ -916,9 +916,9 @@ cc_library(
 # TODO(ezhulenev): Extract `RunCholesky` into a separate library.
 cc_library(
     name = "cholesky_thunk",
-    srcs = ["cholesky_thunk.cc"],
-    hdrs = ["cholesky_thunk.h"],
-    deps = [
+    srcs = if_gpu_is_configured(["cholesky_thunk.cc"]),
+    hdrs = if_gpu_is_configured(["cholesky_thunk.h"]),
+    deps = if_gpu_is_configured([
         ":buffer_allocations",
         ":cusolver_context",
         ":precompiled_kernels",
@@ -938,7 +938,7 @@ cc_library(
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:optional",
-    ],
+    ]),
 )
 
 # TODO(ezhulenev): Extract `RunTriangularSolve` into a separate library.
